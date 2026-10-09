@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.views import LoginView, LogoutView
 from django.db.models import Q
-from django.http import FileResponse, Http404
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -46,9 +46,8 @@ def download_document(request, pk):
     if not document.user_can_access(request.user):
         raise Http404("Document introuvable.")
 
-    path = document.file.path
-    filename = document.file.name.rsplit("/", 1)[-1]
-    return FileResponse(open(path, "rb"), as_attachment=True, filename=filename)
+    # URL pré-signée R2, valable AWS_QUERYSTRING_EXPIRE secondes (5 min).
+    return redirect(document.file.url)
 
 
 @login_required

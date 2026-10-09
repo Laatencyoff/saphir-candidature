@@ -3,7 +3,7 @@ from pathlib import Path
 from django.conf import settings
 from django.db import models
 
-from documents.storage import private_storage
+from documents.storage import PrivateR2Storage
 
 
 class Document(models.Model):
@@ -11,7 +11,7 @@ class Document(models.Model):
     description = models.TextField("description", blank=True)
     file = models.FileField(
         "fichier",
-        storage=private_storage,
+        storage=PrivateR2Storage(),
         upload_to="documents/%Y/%m/",
     )
     created_at = models.DateTimeField("date d'ajout", auto_now_add=True)

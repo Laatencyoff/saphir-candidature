@@ -5,7 +5,14 @@ Django settings for Saphir candidature.
 import os
 from pathlib import Path
 
+from botocore.config import Config
+from dotenv import load_dotenv
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Charge les variables du fichier .env (voir .env.example). Les variables déjà
+# présentes dans l'environnement du système ont priorité.
+load_dotenv(BASE_DIR / ".env")
 
 # En production : définir DJANGO_SECRET_KEY, DJANGO_DEBUG=0 et DJANGO_ALLOWED_HOSTS.
 SECRET_KEY = os.environ.get(
@@ -79,10 +86,33 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-# Les fichiers ne sont JAMAIS servis via MEDIA_URL / /media/.
-# Accès exclusivement via la vue protégées download_document.
-PRIVATE_MEDIA_ROOT = BASE_DIR / "private_media"
-PRIVATE_MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+# ---------------------------------------------------------------------------
+# Stockage des documents : Cloudflare R2 (compatible S3), bucket privé.
+# Les fichiers ne sont JAMAIS servis via MEDIA_URL / /media/ : la vue
+# download_document vérifie les droits puis redirige vers une URL pré-signée
+# valable 5 minutes.
+# ---------------------------------------------------------------------------
+R2_ACCESS_KEY_ID = os.environ.get("R2_ACCESS_KEY_ID", "")
+R2_SECRET_ACCESS_KEY = os.environ.get("R2_SECRET_ACCESS_KEY", "")
+R2_BUCKET_NAME = os.environ.get("R2_BUCKET_NAME", "")
+R2_ENDPOINT_URL = os.environ.get("R2_ENDPOINT_URL", "")
+
+AWS_ACCESS_KEY_ID = R2_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY = R2_SECRET_ACCESS_KEY
+AWS_STORAGE_BUCKET_NAME = R2_BUCKET_NAME
+AWS_S3_ENDPOINT_URL = R2_ENDPOINT_URL
+AWS_S3_SIGNATURE_VERSION = "s3v4"
+AWS_S3_REGION_NAME = "auto"
+AWS_DEFAULT_ACL = None
+AWS_QUERYSTRING_AUTH = True
+AWS_QUERYSTRING_EXPIRE = 300  # URLs pré-signées valables 5 minutes
+AWS_S3_FILE_OVERWRITE = False
+# R2 ne prend pas en charge les checksums CRC32 que boto3 >= 1.36 ajoute par défaut.
+AWS_S3_CLIENT_CONFIG = Config(
+    signature_version="s3v4",
+    request_checksum_calculation="when_required",
+    response_checksum_validation="when_required",
+)
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard"

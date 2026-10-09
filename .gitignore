@@ -3,8 +3,7 @@ __pycache__/
 *.py[cod]
 *.sqlite3
 db.sqlite3
-private_media/**
-!private_media/.gitkeep
+private_media/
 staticfiles/
 .env
 *.log

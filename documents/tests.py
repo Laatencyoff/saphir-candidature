@@ -1,4 +1,9 @@
+import os
+import shutil
+import tempfile
+
 from django.contrib.auth import get_user_model
+from django.core.files.storage import FileSystemStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
@@ -8,7 +13,27 @@ from documents.models import Document
 User = get_user_model()
 
 
-class DocumentAccessTests(TestCase):
+class LocalStorageTestCase(TestCase):
+    """Remplace le stockage R2 par un dossier temporaire local pendant les tests."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._tmp_dir = tempfile.mkdtemp(prefix="saphir-test-")
+        cls._file_field = Document._meta.get_field("file")
+        cls._original_storage = cls._file_field.storage
+        cls._file_field.storage = FileSystemStorage(
+            location=cls._tmp_dir, base_url="/test-storage/"
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._file_field.storage = cls._original_storage
+        shutil.rmtree(cls._tmp_dir, ignore_errors=True)
+        super().tearDownClass()
+
+
+class DocumentAccessTests(LocalStorageTestCase):
     def setUp(self):
         self.owner = User.objects.create_user("candidat", password="MotDePasseFort1")
         self.other = User.objects.create_user("autre", password="MotDePasseFort1")
@@ -23,10 +48,12 @@ class DocumentAccessTests(TestCase):
         response = self.client.get(reverse("dashboard"))
         self.assertEqual(response.status_code, 302)
 
-    def test_owner_can_download(self):
+    def test_owner_is_redirected_to_storage_url(self):
         self.client.login(username="candidat", password="MotDePasseFort1")
         response = self.client.get(reverse("download_document", args=[self.document.pk]))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, self.document.file.url)
+        self.assertTrue(response.url.startswith("/test-storage/"))
 
     def test_unassigned_user_gets_404(self):
         self.client.login(username="autre", password="MotDePasseFort1")
@@ -46,7 +73,7 @@ class DocumentAccessTests(TestCase):
         self.assertEqual(response.status_code, 403)
 
 
-class DocumentManagementTests(TestCase):
+class DocumentManagementTests(LocalStorageTestCase):
     def setUp(self):
         self.candidate = User.objects.create_user("candidat", password="MotDePasseFort1")
         self.admin = User.objects.create_superuser("admin", "admin@example.com", "MotDePasseFort1")
@@ -119,8 +146,6 @@ class DocumentManagementTests(TestCase):
         response = self.client.post(reverse("document_delete", args=[self.document.pk]))
         self.assertRedirects(response, reverse("dashboard"))
         self.assertFalse(Document.objects.filter(pk=self.document.pk).exists())
-        import os
-
         self.assertFalse(os.path.exists(path))
 
     def test_dashboard_shows_admin_actions_only_to_superuser(self):
