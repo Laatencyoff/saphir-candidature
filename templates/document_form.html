@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}{% if document %}Modifier{% else %}Ajouter{% endif %} un document — Saphir candidature{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl px-6 py-10">
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold text-saphir-900">
+                {% if document %}Modifier le document{% else %}Ajouter un document{% endif %}
+            </h1>
+            <p class="mt-1 text-sm text-slate-600">
+                Le fichier est stocké de manière privée et n’est accessible qu’aux utilisateurs désignés.
+            </p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="text-sm font-medium text-saphir-700 hover:underline">← Retour</a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6 rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div>
+            <label for="{{ form.title.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Titre</label>
+            {{ form.title }}
+            {% for error in form.title.errors %}<p class="mt-1 text-sm text-red-700">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div>
+            <label for="{{ form.description.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Description <span class="font-normal text-slate-400">(optionnelle)</span></label>
+            {{ form.description }}
+            {% for error in form.description.errors %}<p class="mt-1 text-sm text-red-700">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div>
+            <label for="{{ form.file.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Fichier</label>
+            {% if document %}
+            <p class="mb-2 text-sm text-slate-500">Fichier actuel : <span class="font-medium text-slate-700">{{ document.file.name|cut:"documents/" }}</span>. Laissez vide pour le conserver.</p>
+            {% endif %}
+            {% if not document %}
+            <p class="mb-2 text-xs text-slate-500">PDF, XLSX, DOCX, ZIP… Le fichier est enregistré dans un dossier privé.</p>
+            {% endif %}
+            {{ form.file }}
+            {% for error in form.file.errors %}<p class="mt-1 text-sm text-red-700">{{ error }}</p>{% endfor %}
+        </div>
+
+        <fieldset class="rounded-lg border border-saphir-100 bg-saphir-50/60 p-5">
+            <legend class="px-2 text-sm font-semibold uppercase tracking-wide text-saphir-800">Droits d’accès</legend>
+
+            <label class="flex items-start gap-3">
+                {{ form.is_public_to_all_users }}
+                <span>
+                    <span class="block text-sm font-medium text-slate-800">Accessible à tous les utilisateurs connectés</span>
+                    <span class="block text-xs text-slate-500">Tout compte authentifié pourra télécharger ce document.</span>
+                </span>
+            </label>
+
+            <div class="mt-5">
+                <p class="mb-2 text-sm font-medium text-slate-800">Ou sélectionner des utilisateurs précis</p>
+                {% if form.allowed_users.field.queryset %}
+                <div class="grid gap-2 sm:grid-cols-2">
+                    {% for checkbox in form.allowed_users %}
+                    <label class="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:border-saphir-200">
+                        {{ checkbox.tag }}
+                        <span>{{ checkbox.choice_label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-sm text-slate-500">
+                    Aucun utilisateur candidat n’existe encore.
+                    <a href="{% url 'admin:auth_user_add' %}" class="font-medium text-saphir-700 hover:underline">Créer un compte</a>.
+                </p>
+                {% endif %}
+                {% for error in form.allowed_users.errors %}<p class="mt-2 text-sm text-red-700">{{ error }}</p>{% endfor %}
+            </div>
+        </fieldset>
+
+        <div class="flex items-center justify-end gap-3">
+            <a href="{% url 'dashboard' %}" class="rounded-md px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">Annuler</a>
+            <button type="submit" class="rounded-md bg-saphir-700 px-5 py-2 text-sm font-medium text-white transition hover:bg-saphir-600">
+                {% if document %}Enregistrer{% else %}Ajouter le document{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

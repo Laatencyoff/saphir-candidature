@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Saphir candidature{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        saphir: {
+                            50: "#f0f6fb",
+                            100: "#d9e8f5",
+                            200: "#b3d0ea",
+                            500: "#1a6bb8",
+                            600: "#0e4d8a",
+                            700: "#0a3a6b",
+                            800: "#082c52",
+                            900: "#061e38",
+                            950: "#041525",
+                        },
+                    },
+                    fontFamily: {
+                        sans: ["Georgia", "Cambria", "Times New Roman", "serif"],
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 antialiased">
+    {% if user.is_authenticated %}
+    <header class="border-b border-saphir-800/10 bg-saphir-900 text-white">
+        <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-3">
+                <span class="flex h-9 w-9 items-center justify-center rounded-full bg-saphir-500 text-sm font-semibold tracking-wide">S</span>
+                <span class="text-lg font-semibold tracking-wide">Saphir candidature</span>
+            </a>
+            <div class="flex items-center gap-4 text-sm">
+                {% if user.is_superuser %}
+                <a href="{% url 'admin:auth_user_changelist' %}" class="hidden text-saphir-100 hover:text-white sm:inline">Utilisateurs</a>
+                {% endif %}
+                <span class="max-w-[10rem] truncate text-saphir-100" title="{{ user.get_username }}">{{ user.get_username }}</span>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="rounded-md border border-white/20 bg-white/5 px-3 py-1.5 font-medium text-white transition hover:bg-white/15">
+                        Déconnexion
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
+    {% endif %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

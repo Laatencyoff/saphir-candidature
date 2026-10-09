@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord — Saphir candidature{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-6xl px-6 py-10">
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+        {% for message in messages %}
+        <div class="rounded-md border px-4 py-3 text-sm {% if message.tags == 'error' %}border-red-200 bg-red-50 text-red-800{% else %}border-emerald-200 bg-emerald-50 text-emerald-800{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-semibold text-saphir-900">Documents mis à disposition</h1>
+            <p class="mt-1 text-sm text-slate-600">
+                {% if user.is_superuser %}
+                Vous voyez l’ensemble des documents et pouvez gérer leurs droits d’accès.
+                {% else %}
+                Seuls les fichiers auxquels vous êtes autorisé apparaissent ci-dessous.
+                {% endif %}
+            </p>
+        </div>
+        {% if user.is_superuser %}
+        <div class="flex flex-wrap items-center gap-3">
+            <a href="{% url 'admin:auth_user_add' %}" class="rounded-md border border-saphir-200 bg-white px-4 py-2 text-sm font-medium text-saphir-800 transition hover:bg-saphir-50">
+                Créer un utilisateur
+            </a>
+            <a href="{% url 'document_create' %}" class="rounded-md bg-saphir-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-saphir-600">
+                + Ajouter un document
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if documents %}
+    <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-saphir-50">
+                <tr>
+                    <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-saphir-800">Document</th>
+                    <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-saphir-800">Format</th>
+                    <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-saphir-800">Mise à disposition</th>
+                    {% if user.is_superuser %}
+                    <th scope="col" class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-saphir-800">Accès</th>
+                    {% endif %}
+                    <th scope="col" class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-saphir-800">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for document in documents %}
+                <tr class="hover:bg-slate-50">
+                    <td class="px-5 py-4">
+                        <div class="font-medium text-saphir-900">{{ document.title }}</div>
+                        {% if document.description %}
+                        <p class="mt-1 max-w-xl text-sm text-slate-600">{{ document.description }}</p>
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-4">
+                        <span class="inline-flex rounded bg-saphir-100 px-2 py-0.5 text-xs font-semibold uppercase text-saphir-800">
+                            {{ document.file_extension }}
+                        </span>
+                    </td>
+                    <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-600">
+                        {{ document.created_at|date:"d/m/Y H:i" }}
+                    </td>
+                    {% if user.is_superuser %}
+                    <td class="px-5 py-4 text-sm">
+                        {% if document.is_public_to_all_users %}
+                        <span class="inline-flex rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Tous les utilisateurs</span>
+                        {% else %}
+                        <div class="flex max-w-xs flex-wrap gap-1">
+                            {% for u in document.allowed_users.all %}
+                            <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">{{ u.get_username }}</span>
+                            {% empty %}
+                            <span class="text-xs italic text-red-600">Aucun utilisateur</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    <td class="px-5 py-4 text-right">
+                        <div class="inline-flex items-center gap-2">
+                            {% if user.is_superuser %}
+                            <a href="{% url 'document_update' document.pk %}"
+                               class="inline-flex whitespace-nowrap items-center rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                                Gérer
+                            </a>
+                            <form method="post" action="{% url 'document_delete' document.pk %}"
+                                  onsubmit="return confirm('Supprimer définitivement « {{ document.title|escapejs }} » ?');">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="inline-flex whitespace-nowrap items-center rounded-md border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50">
+                                    Supprimer
+                                </button>
+                            </form>
+                            {% endif %}
+                            <a href="{% url 'download_document' document.pk %}"
+                               class="inline-flex whitespace-nowrap items-center rounded-md bg-saphir-700 px-3 py-2 text-sm font-medium text-white transition hover:bg-saphir-600">
+                                Télécharger
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
+        {% if user.is_superuser %}
+        <p class="text-slate-700">Aucun document pour le moment.</p>
+        <a href="{% url 'document_create' %}" class="mt-4 inline-flex rounded-md bg-saphir-700 px-4 py-2 text-sm font-medium text-white hover:bg-saphir-600">Ajouter un premier document</a>
+        {% else %}
+        <p class="text-slate-700">Aucun document n’est actuellement disponible pour votre compte.</p>
+        <p class="mt-1 text-sm text-slate-500">Contactez l’administrateur si vous pensez qu’il s’agit d’une erreur.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
