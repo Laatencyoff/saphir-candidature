@@ -10,4 +10,5 @@ urlpatterns = [
     path("documents/<int:pk>/modifier/", views.document_update, name="document_update"),
     path("documents/<int:pk>/supprimer/", views.document_delete, name="document_delete"),
     path("documents/<int:pk>/telecharger/", views.download_document, name="download_document"),
+    path("documents/<int:pk>/consulter/", views.view_document, name="view_document"),
 ]

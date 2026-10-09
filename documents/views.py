@@ -51,6 +51,21 @@ def download_document(request, pk):
 
 
 @login_required
+def view_document(request, pk):
+    """Consultation du document dans le navigateur (sans téléchargement forcé)."""
+    document = get_object_or_404(Document, pk=pk)
+    if not document.user_can_access(request.user):
+        raise Http404("Document introuvable.")
+
+    storage = document.file.storage
+    if hasattr(storage, "inline_url"):
+        url = storage.inline_url(document.file.name)
+    else:  # stockage de test local : pas de paramètres de réponse S3
+        url = storage.url(document.file.name)
+    return redirect(url)
+
+
+@login_required
 @superuser_required
 def document_create(request):
     form = DocumentForm(request.POST or None, request.FILES or None)

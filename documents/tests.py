@@ -55,6 +55,26 @@ class DocumentAccessTests(LocalStorageTestCase):
         self.assertEqual(response.url, self.document.file.url)
         self.assertTrue(response.url.startswith("/test-storage/"))
 
+    def test_owner_can_view_inline(self):
+        self.client.login(username="candidat", password="MotDePasseFort1")
+        response = self.client.get(reverse("view_document", args=[self.document.pk]))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith("/test-storage/"))
+
+    def test_unassigned_user_cannot_view_inline(self):
+        self.client.login(username="autre", password="MotDePasseFort1")
+        response = self.client.get(reverse("view_document", args=[self.document.pk]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_preview_button_only_for_previewable_formats(self):
+        self.client.login(username="candidat", password="MotDePasseFort1")
+        self.assertTrue(self.document.can_preview)  # .pdf
+        self.assertContains(self.client.get(reverse("dashboard")), "Consulter")
+        archive = Document.objects.create(
+            title="Archive", file=SimpleUploadedFile("dossier.zip", b"PK"), is_public_to_all_users=True
+        )
+        self.assertFalse(archive.can_preview)
+
     def test_unassigned_user_gets_404(self):
         self.client.login(username="autre", password="MotDePasseFort1")
         response = self.client.get(reverse("download_document", args=[self.document.pk]))

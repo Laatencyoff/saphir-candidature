@@ -36,10 +36,17 @@ class Document(models.Model):
     def __str__(self):
         return self.title
 
+    # Formats qu'un navigateur sait afficher directement (bouton « Consulter »).
+    PREVIEWABLE_EXTENSIONS = {"pdf", "png", "jpg", "jpeg", "gif", "webp", "svg", "txt"}
+
     @property
     def file_extension(self) -> str:
         suffix = Path(self.file.name).suffix.lower().lstrip(".")
         return suffix or "—"
+
+    @property
+    def can_preview(self) -> bool:
+        return self.file_extension in self.PREVIEWABLE_EXTENSIONS
 
     def user_can_access(self, user) -> bool:
         if not user.is_authenticated:

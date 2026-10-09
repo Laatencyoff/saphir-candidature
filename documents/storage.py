@@ -14,6 +14,12 @@ class PrivateR2Storage(S3Boto3Storage):
     file_overwrite = False
     custom_domain = None  # garantit l'usage de l'endpoint R2 signé
 
+    def inline_url(self, name):
+        """URL pré-signée qui demande à R2 de servir le fichier en affichage
+        inline (consultation dans le navigateur) au lieu du téléchargement
+        imposé par le Content-Disposition enregistré à l'upload."""
+        return self.url(name, parameters={"ResponseContentDisposition": "inline"})
+
     def get_object_parameters(self, name):
         # Force le téléchargement (plutôt que l'affichage inline) avec le nom
         # d'origine lorsque le navigateur suit l'URL pré-signée.
