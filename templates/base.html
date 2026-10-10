@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Saphir candidature{% endblock %}</title>
+    <title>{% block title %}candidature-marché{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -39,7 +39,7 @@
         <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
             <a href="{% url 'dashboard' %}" class="flex items-center gap-3">
                 <span class="flex h-9 w-9 items-center justify-center rounded-full bg-saphir-500 text-sm font-semibold tracking-wide">S</span>
-                <span class="text-lg font-semibold tracking-wide">Saphir candidature</span>
+                <span class="text-lg font-semibold tracking-wide">candidature-marché</span>
             </a>
             <div class="flex items-center gap-4 text-sm">
                 {% if user.is_superuser %}
