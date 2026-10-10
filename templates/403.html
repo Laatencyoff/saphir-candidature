@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Accès refusé — candidature-marché{% endblock %}
+{% block title %}Accès refusé — Candidature Marché{% endblock %}
 
 {% block content %}
 <div class="flex min-h-screen items-center justify-center bg-saphir-950 px-4">
     <div class="max-w-md rounded-xl bg-white p-8 text-center shadow-xl">
         <p class="text-sm font-semibold uppercase tracking-wide text-saphir-600">Erreur 403</p>
         <h1 class="mt-2 text-xl font-semibold text-saphir-900">Accès refusé</h1>
-        <p class="mt-3 text-sm text-slate-600">L’administration de candidature-marché est réservée au superutilisateur.</p>
+        <p class="mt-3 text-sm text-slate-600">L’administration de Candidature Marché est réservée au superutilisateur.</p>
         <a href="{% url 'dashboard' %}" class="mt-6 inline-flex rounded-md bg-saphir-700 px-4 py-2 text-sm font-medium text-white hover:bg-saphir-600">
             Retour au tableau de bord
         </a>
