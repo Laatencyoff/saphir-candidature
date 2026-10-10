@@ -1,10 +1,12 @@
 """
-Django settings for Saphir candidature.
+Django settings for candidature-marché.
 """
 
 import os
+import sys
 from pathlib import Path
 
+import dj_database_url
 from botocore.config import Config
 from dotenv import load_dotenv
 
@@ -72,12 +74,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "saphir.wsgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+# PostgreSQL (Neon) si DATABASE_URL est défini, sinon SQLite local.
+# Les tests Django restent sur SQLite pour ne pas toucher à la base cloud.
+_sqlite_url = f"sqlite:///{(BASE_DIR / 'db.sqlite3').as_posix()}"
+if os.environ.get("DATABASE_URL") and "test" not in sys.argv:
+    DATABASES = {
+        "default": dj_database_url.config(
+            conn_max_age=600,
+            ssl_require=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            _sqlite_url,
+            conn_max_age=600,
+        )
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
