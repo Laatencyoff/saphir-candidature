@@ -4,8 +4,8 @@ from django.contrib.auth.models import User
 
 from documents.models import Document
 
-admin.site.site_header = "candidature-marché Administration"
-admin.site.site_title = "candidature-marché"
+admin.site.site_header = "Candidature Marché Administration"
+admin.site.site_title = "Candidature Marché"
 admin.site.index_title = "Gestion de la plateforme"
 
 
